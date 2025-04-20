@@ -11,6 +11,10 @@ export async function POST(req) {
 
   const apiKey = process.env.OPENAI_API_KEY;
 
+  if (!apiKey) {
+    return NextResponse.json({ message: "APIキーが見つかりませんでした。" }, { status: 500 });
+  }
+
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -34,6 +38,7 @@ export async function POST(req) {
   });
 
   const data = await response.json();
+
   const message = data.choices?.[0]?.message?.content || "メッセージの取得に失敗しました。";
 
   return NextResponse.json({ message });
