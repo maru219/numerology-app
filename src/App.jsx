@@ -33,16 +33,37 @@ export default function App() {
     const personalCycle = calculatePersonalCycle(year, birthNumber);
 
     setLoading(true);
-    const res = await fetch("/api/generate-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, birthNumber, yearCycle, personalCycle, year }),
-    });
+    setResult(null);
 
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/generate-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, birthNumber, yearCycle, personalCycle, year }),
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`APIエラー: ${errorText}`);
+      }
+
+      const data = contentType.includes("application/json")
+        ? await res.json()
+        : { message: "❗サーバーエラー: JSON形式のレスポンスがありません。" };
+
+      setResult({ birthNumber, yearCycle, personalCycle, message: data.message });
+    } catch (error) {
+      setResult({
+        birthNumber,
+        yearCycle,
+        personalCycle,
+        message: `❗診断に失敗しました: ${error.message}`,
+      });
+    }
+
     setLoading(false);
-
-    setResult({ birthNumber, yearCycle, personalCycle, message: data.message });
   };
 
   return (
@@ -55,6 +76,8 @@ export default function App() {
         value={name}
         onChange={(e) => setName(e.target.value)}
         className="border p-2 w-full mb-2"
+        name="username"
+        id="username"
       />
       <input
         type="text"
@@ -62,6 +85,8 @@ export default function App() {
         value={birthdate}
         onChange={(e) => setBirthdate(e.target.value)}
         className="border p-2 w-full mb-4"
+        name="birthdate"
+        id="birthdate"
       />
       <button
         onClick={handleCalculate}
