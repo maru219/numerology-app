@@ -12,34 +12,42 @@ export async function POST(req) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    return NextResponse.json({ message: "APIキーが見つかりませんでした。" }, { status: 500 });
+    return NextResponse.json({ message: "❗APIキーが見つかりませんでした。" }, { status: 500 });
   }
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4",
-      messages: [
-        {
-          role: "system",
-          content: "あなたは優しい日本語の数秘術ガイドです。数値や周期をもとにやさしくアドバイスを伝えます。",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.9,
-    }),
-  });
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "あなたは優しい日本語の数秘術ガイドです。数値や周期をもとにやさしくアドバイスを伝えます。",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.9,
+      }),
+    });
 
-  const data = await response.json();
+    if (!response.ok) {
+      const errorText = await response.text();
+      return NextResponse.json({ message: `⚠️ OpenAI API エラー: ${errorText}` }, { status: 500 });
+    }
 
-  const message = data.choices?.[0]?.message?.content || "メッセージの取得に失敗しました。";
+    const data = await response.json();
+    const message = data.choices?.[0]?.message?.content || "メッセージの取得に失敗しました。";
 
-  return NextResponse.json({ message });
+    return NextResponse.json({ message });
+  } catch (error) {
+    return NextResponse.json({ message: `❗サーバーエラー: ${error.message}` }, { status: 500 });
+  }
 }
