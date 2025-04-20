@@ -1,11 +1,7 @@
-export const config = {
-  runtime: "nodejs",
-};
-
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
   return NextResponse.json({
-    message: "これはテスト用のメッセージです。APIの呼び出しなしで関数が正常動作するかを確認しています。"
+    message: "✅ テスト成功！generate-message.js は正しく動作しています。",
   });
 }
